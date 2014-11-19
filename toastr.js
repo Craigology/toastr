@@ -32,11 +32,9 @@
                 options: {},
                 subscribe: subscribe,
                 success: success,
-                version: '2.1.0',
+                version: '2.1.1',
                 warning: warning
             };
-
-            var previousToast;
 
             return toastr;
 
@@ -181,7 +179,10 @@
                     target: 'body',
                     closeHtml: '<button>&times;</button>',
                     newestOnTop: true,
-                    preventDuplicates: false,
+                    preventDuplicates : {
+                        skipDuplicateMessage : false,
+                        removeMessageWithSameTitle : false
+                    },
                     progressBar: false
                 };
             }
@@ -195,14 +196,6 @@
                 var options = getOptions(),
                     iconClass = map.iconClass || options.iconClass;
 
-                if (options.preventDuplicates) {
-                    if (map.message === previousToast) {
-                        return;
-                    } else {
-                        previousToast = map.message;
-                    }
-                }
-
                 if (typeof (map.optionsOverride) !== 'undefined') {
                     options = $.extend(options, map.optionsOverride);
                     iconClass = map.optionsOverride.iconClass || iconClass;
@@ -211,6 +204,7 @@
                 toastId++;
 
                 $container = getContainer(options, true);
+
                 var intervalId = null,
                     $toastElement = $('<div/>'),
                     $titleElement = $('<div/>'),
@@ -242,6 +236,25 @@
                 if (map.message) {
                     $messageElement.append(map.message).addClass(options.messageClass);
                     $toastElement.append($messageElement);
+                }
+
+                if (options.preventDuplicates.skipDuplicateMessage) {
+                    var activeToasts = $container.children();
+                    for (var i = activeToasts.length - 1; i >= 0; i--) {
+                        var activeToastMesssage = $(activeToasts[i]).children('.' + options.messageClass);
+                        if (activeToastMesssage.text() === $messageElement.text()) {
+                            return;
+                        }
+                    }
+                }
+                if (options.preventDuplicates.removeMessageWithSameTitle) {
+                    for (var i = activeToasts.length - 1; i >= 0; i--) {
+                        var $activeToast = $(activeToasts[i]);
+                        var activeToastTitle = $activeToast.children('.' + options.titleClass);
+                        if (activeToastTitle.text() === $titleElement.text()) {
+                            $activeToast.remove();
+                        }
+                    }
                 }
 
                 if (options.closeButton) {
@@ -355,6 +368,7 @@
                 if ($toastElement.is(':visible')) {
                     return;
                 }
+
                 $toastElement.remove();
                 $toastElement = null;
                 if ($container.children().length === 0) {
