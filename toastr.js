@@ -358,10 +358,12 @@
 
                 function shouldExit(options, map) {
                     if (options.preventDuplicates) {
+                        if (!$container) { $container = getContainer(); }
+
                         var activeToasts = $container.children();
                         for (var i = activeToasts.length - 1; i >= 0; i--) {
                             var activeToastMesssage = $(activeToasts[i]).children('.' + options.messageClass);
-                            if (activeToastMesssage.text() === $messageElement.text()) {
+                            if (activeToastMesssage.text() === map.message) {
                                 return true;
                             }
                         }
